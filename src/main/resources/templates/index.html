@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Terminal Web</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <meta http-equiv="refresh" content="30">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-left">
+        <div class="burger-menu" onclick="toggleSidebar()">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="logo">Розклад Львів</div>
+        <div class="nav-stats">
+            <span th:text="'[ ACT: ' + ${actualCount} + ' | TOTAL: ' + ${totalCount} + ' ]'"></span>
+        </div>
+    </div>
+    <form action="/" method="get" class="search-bar">
+        <input type="text" name="search" placeholder="🔍 Пошук за містом...">
+        <button type="submit" class="btn-search">ЗНАЙТИ</button>
+    </form>
+</nav>
+
+<div id="sidebar" class="sidebar">
+    <a href="javascript:void(0)" class="closebtn" onclick="toggleSidebar()">&times;</a>
+    <div class="sidebar-content">
+        <h3>Керування</h3>
+        <button class="menu-item" onclick="openModal()">➕ Додати рейс</button>
+        <form action="/sync-uz" method="post" style="width:100%">
+            <button type="submit" class="menu-item" style="border-color: #00ff00; color: #00ff00;">🔄 СИНХРОНІЗАЦІЯ З УЗ</button>
+        </form>
+        <hr>
+        <p style="color: #ccc; font-size: 0.8rem; padding: 10px;">Terminal Control v2.0</p>
+    </div>
+</div>
+
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 style="color: #ffcc00; margin-bottom: 20px;">🆕 НОВИЙ РЕЙС</h2>
+        <form action="/add" method="post" class="modal-form">
+            <div class="input-group"><label>Призначення:</label><input type="text" name="dest" required></div>
+            <div class="input-group">
+                <label>Тип:</label>
+                <select name="type" required>
+                    <option value="Інтерсіті+">Інтерсіті+</option>
+                    <option value="Нічний Експрес">Нічний Експрес</option>
+                    <option value="Електричка">Електричка</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Час:</label><input type="datetime-local" name="time" required></div>
+            <button type="submit" class="button-add">ЗБЕРЕГТИ</button>
+        </form>
+    </div>
+</div>
+
+<table class="table-view">
+    <thead>
+    <tr><th>#</th><th>№</th><th>ТИП</th><th>ПРИЗНАЧЕННЯ</th><th>РОЗКЛАД</th><th>КОЛІЯ</th><th>СТАТУС</th><th>ДІЇ</th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="train, iter : ${trains}" th:class="${!train.actual} ? 'row-expired' : (${train.delayMinutes > 0} ? 'row-delay' : 'row-actual')">
+        <td th:text="${iter.count}"></td>
+        <td th:text="${train.number}"></td>
+        <td th:text="${train.type}"></td>
+        <td th:text="${train.destination}"></td>
+        <td th:text="${train.getFormattedDateTime()}"></td>
+        <td th:text="${train.actual ? train.platform : '—'}"></td>
+        <td th:text="${train.getStatus()}"></td>
+        <td>
+            <form th:action="@{'/delete/' + ${train.number}}" method="post"><button type="submit" class="btn-small btn-del">🗑️</button></form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<script>
+    function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); }
+    function openModal() { document.getElementById("addModal").style.display = "flex"; toggleSidebar(); }
+    function closeModal() { document.getElementById("addModal").style.display = "none"; }
+</script>
+</body>
+</html>
