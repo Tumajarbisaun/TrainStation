@@ -22,17 +22,26 @@ public class UzParserService {
         try {
             String url = "https://www.uz.gov.ua/passengers/timetable/?station=23200&by_station=1";
 
-            System.out.println("🌐 Підключаюсь до УЗ: " + url);
+            System.out.println("🌐 Підключаюсь до УЗ через хмару: " + url);
 
             Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .timeout(15000)
+                    // Маскуємось під реальний Chrome на Windows
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+                    // Додаємо заголовки, які зазвичай надсилає браузер
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
+                    .header("Accept-Language", "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7")
+                    .header("Connection", "keep-alive")
+                    .header("Upgrade-Insecure-Requests", "1")
+                    // Кажемо, що ми прийшли з головної сторінки УЗ
+                    .referrer("https://www.uz.gov.ua/")
+                    .timeout(20000)
                     .followRedirects(true)
                     .get();
 
             Elements rows = doc.select("table.vt tr");
 
             if (rows.isEmpty()) {
+                // Спроба знайти будь-яку таблицю, якщо селектор .vt не спрацював
                 for (Element table : doc.select("table")) {
                     Elements testRows = table.select("tr");
                     if (!testRows.isEmpty() && testRows.get(0).select("td, th").size() >= 5) {
@@ -42,7 +51,12 @@ public class UzParserService {
                 }
             }
 
-            System.out.println("📊 Знайдено рядків: " + rows.size());
+            System.out.println("📊 Отримано даних. Кількість рядків: " + rows.size());
+
+            if (rows.isEmpty()) {
+                System.out.println("⚠️ Увага: Таблиця порожня. Можливо, спрацював захист від ботів.");
+            }
+
             Random r = new Random();
 
             for (int i = 0; i < rows.size(); i++) {
@@ -84,9 +98,8 @@ public class UzParserService {
                             int platform;
                             int attempts = 0;
                             do {
-                                platform = r.nextInt(10) + 1; // Генеруємо колію від 1 до 10
+                                platform = r.nextInt(10) + 1;
                                 attempts++;
-                                // Якщо за 15 спроб не знайшли вільну (малоімовірно), просто беремо останню
                             } while (busyTodayAtThisTime.contains(platform) && attempts < 15);
 
                             busyTodayAtThisTime.add(platform);
@@ -103,10 +116,10 @@ public class UzParserService {
                 }
             }
         } catch (Exception e) {
-            System.err.println("❌ Помилка парсингу: " + e.getMessage());
+            System.err.println("❌ Помилка під час звернення до УЗ: " + e.getMessage());
         }
 
-        System.out.println("🏁 Розподіл завершено. Конфліктів на коліях не виявлено.");
+        System.out.println("🏁 Парсинг завершено. Знайдено потягів: " + parsedTrains.size());
         return parsedTrains;
     }
 }
