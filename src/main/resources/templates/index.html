@@ -13,7 +13,9 @@
         <div class="burger-menu" onclick="toggleSidebar()">
             <span></span><span></span><span></span>
         </div>
-        <div class="logo">Розклад Львів</div>
+        <div class="logo" onclick="openCityModal()" style="cursor: pointer; border-bottom: 2px dashed #ffcc00;">
+            Розклад <span th:text="${cityName}">Львів</span>
+        </div>
         <div class="nav-stats">
             <span th:text="'[ ACT: ' + ${actualCount} + ' | TOTAL: ' + ${totalCount} + ' ]'"></span>
         </div>
@@ -29,11 +31,39 @@
     <div class="sidebar-content">
         <h3>Керування</h3>
         <button class="menu-item" onclick="openModal()">➕ Додати рейс</button>
+        <button class="menu-item" onclick="openCityModal()">🌍 Змінити місто</button>
         <form action="/sync-uz" method="post" style="width:100%">
             <button type="submit" class="menu-item" style="border-color: #00ff00; color: #00ff00;">🔄 СИНХРОНІЗАЦІЯ З УЗ</button>
         </form>
         <hr>
-        <p style="color: #ccc; font-size: 0.8rem; padding: 10px;">Terminal Control v2.0</p>
+        <p style="color: #ccc; font-size: 0.8rem; padding: 10px;">Terminal Control v2.5</p>
+    </div>
+</div>
+
+<div id="cityModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <span class="close" onclick="closeCityModal()">&times;</span>
+        <h2 style="color: #00ff00; margin-bottom: 20px;">🌍 ОБЕРІТЬ МІСТО</h2>
+        <div class="city-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <form action="/change-city" method="post">
+                <input type="hidden" name="slug" value="lviv"><input type="hidden" name="name" value="Львів">
+                <button type="submit" class="menu-item">Львів</button></form>
+            <form action="/change-city" method="post">
+                <input type="hidden" name="slug" value="kyiv"><input type="hidden" name="name" value="Київ">
+                <button type="submit" class="menu-item">Київ</button></form>
+            <form action="/change-city" method="post">
+                <input type="hidden" name="slug" value="dnipro"><input type="hidden" name="name" value="Дніпро">
+                <button type="submit" class="menu-item">Дніпро</button></form>
+            <form action="/change-city" method="post">
+                <input type="hidden" name="slug" value="odessa"><input type="hidden" name="name" value="Одеса">
+                <button type="submit" class="menu-item">Одеса</button></form>
+            <form action="/change-city" method="post">
+                <input type="hidden" name="slug" value="zaporizhzhia"><input type="hidden" name="name" value="Запоріжжя">
+                <button type="submit" class="menu-item">Запоріжжя</button></form>
+            <form action="/change-city" method="post">
+                <input type="hidden" name="slug" value="kharkiv"><input type="hidden" name="name" value="Харків">
+                <button type="submit" class="menu-item">Харків</button></form>
+        </div>
     </div>
 </div>
 
@@ -81,6 +111,8 @@
     function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); }
     function openModal() { document.getElementById("addModal").style.display = "flex"; toggleSidebar(); }
     function closeModal() { document.getElementById("addModal").style.display = "none"; }
+    function openCityModal() { document.getElementById("cityModal").style.display = "flex"; }
+    function closeCityModal() { document.getElementById("cityModal").style.display = "none"; }
 </script>
 </body>
 </html>

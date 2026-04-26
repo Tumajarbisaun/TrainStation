@@ -19,6 +19,8 @@ import java.util.*;
 public class TrainBoardController {
     private static final String FILE_NAME = "trains.txt";
     private List<Train> trains = new ArrayList<>();
+    private String currentCityName = "Львів";
+    private String currentCitySlug = "lviv";
 
     @Autowired
     private UzParserService uzParserService;
@@ -42,12 +44,25 @@ public class TrainBoardController {
         model.addAttribute("trains", displayList);
         model.addAttribute("actualCount", trains.stream().filter(Train::isActual).count());
         model.addAttribute("totalCount", trains.size());
+        model.addAttribute("cityName", currentCityName);
         return "index";
+    }
+
+    @PostMapping("/change-city")
+    public String changeCity(@RequestParam String slug, @RequestParam String name) {
+        this.currentCitySlug = slug;
+        this.currentCityName = name;
+        List<Train> newTrains = uzParserService.parseStation(slug);
+        if (!newTrains.isEmpty()) {
+            this.trains = newTrains;
+            saveToFile();
+        }
+        return "redirect:/";
     }
 
     @PostMapping("/sync-uz")
     public String syncWithUz() {
-        List<Train> realTrains = uzParserService.parseLvivStation();
+        List<Train> realTrains = uzParserService.parseStation(currentCitySlug);
         if (!realTrains.isEmpty()) {
             this.trains = realTrains;
             saveToFile();
@@ -105,6 +120,7 @@ public class TrainBoardController {
     private void loadFromFile() {
         File f = new File(FILE_NAME);
         if (!f.exists()) return;
+        trains.clear();
         try (Scanner s = new Scanner(f)) {
             while (s.hasNextLine()) {
                 String[] p = s.nextLine().split("\\|");
